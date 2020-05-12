@@ -1,26 +1,52 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
+import { DataStore } from "aws-amplify";
+import { withAuthenticator } from "@aws-amplify/ui-react";
+import { PrivateNote } from "./models";
 
 function App() {
+  const [notes, setNotes] = useState([]);
+
+  const fetchNotes = async () => {
+    const fetched = await DataStore.query(PrivateNote);
+    setNotes(fetched || []);
+  };
+
+  const addNote = async () => {
+    const newNote = new PrivateNote({
+      content: "Testing",
+      owner: "xxx",
+    });
+
+    await DataStore.save(newNote);
+    await fetchNotes();
+  }
+  
+  useEffect(
+    () => {
+      const subscription = DataStore.observe(PrivateNote).subscribe(() => {
+        fetchNotes();
+      });
+      return () => subscription.unsubscribe();
+    },
+    [],
+  );
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h2>Notes</h2>
+      {notes.map(({id, content}) => (
+        <div key={id}>
+          <h3>{id}</h3>
+          <p>{content}</p>
+        </div>
+      ))}
+      <h2>Add new</h2>
+      <button onClick={() => addNote()}>
+        Add new note
+      </button>
     </div>
   );
 }
 
-export default App;
+export default withAuthenticator(App);

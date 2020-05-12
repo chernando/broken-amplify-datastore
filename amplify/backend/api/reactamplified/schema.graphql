@@ -1,0 +1,12 @@
+type PrivateNote
+  @model
+  @auth(rules: [{allow: owner}])
+  @key(
+    name: "byOwner",
+    fields: ["owner"]
+  )
+{
+  id: ID!
+  content: String!
+  owner: String!
+}

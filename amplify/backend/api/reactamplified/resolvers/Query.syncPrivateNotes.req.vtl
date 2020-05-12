@@ -1,0 +1,25 @@
+#set( $identityValue = $util.defaultIfNull($ctx.identity.claims.get("username"), $util.defaultIfNull($ctx.identity.claims.get("cognito:username"), "___xamznone____")) )
+## [Start] Set query expression for @key **
+#set( $modelQueryExpression = {} )
+#set( $modelQueryExpression.expression = "#owner = :owner" )
+#set( $modelQueryExpression.expressionNames = {
+"#owner": "owner"
+} )
+#set( $modelQueryExpression.expressionValues = {
+":owner": {
+    "S": "$identityValue"
+}
+} )
+## [End] Set query expression for @key **
+{
+  "version": "2018-05-29",
+  "operation": "Sync",
+  "limit": $util.defaultIfNull($ctx.args.limit, 100),
+  "nextToken": $util.toJson($util.defaultIfNull($ctx.args.nextToken, null)),
+  "lastSync": $util.toJson($util.defaultIfNull($ctx.args.lastSync, null)),
+  "filter":   #if( $context.args.filter )
+$util.transform.toDynamoDBFilterExpression($ctx.args.filter)
+  #else
+$util.toJson($modelQueryExpression)
+  #end
+}
