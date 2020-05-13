@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { DataStore } from "aws-amplify";
+import { Auth, DataStore } from "aws-amplify";
 import { withAuthenticator } from "@aws-amplify/ui-react";
 import { PrivateNote } from "./models";
 
@@ -15,7 +15,7 @@ function App() {
   const addNote = async () => {
     const newNote = new PrivateNote({
       content: "Testing",
-      owner: "xxx",
+      owner: (await Auth.currentAuthenticatedUser()).username,
     });
 
     await DataStore.save(newNote);
